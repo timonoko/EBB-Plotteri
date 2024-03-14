@@ -37,10 +37,12 @@ def Stepper_Move(duration,Steps1,Steps2):
     wait_when_busy()
     duration,Steps1,Steps2=(str(duration),str(Steps1),str(Steps2))
     ser.write(bytes("SM,{},{},{}\r".format(duration,Steps1,Steps2),encoding='UTF-8'))
-              
+
+PEN_SPEED=2    
 def Move_Rel(x,y):
-    sp=int((abs(x)+abs(y))/4)
-    Stepper_Move(sp,x-y,x+y)
+    duration=int((abs(x)+abs(y))/PEN_SPEED)
+    if PEN_UP: duration=int(duration/(6/PEN_SPEED))
+    Stepper_Move(duration,x-y,x+y)
 
 def Move(x,y):
     global X_NOW,Y_NOW
@@ -52,10 +54,14 @@ def Move(x,y):
         print('Yli rajan',x,y)
     save_status()
 
+PEN_UP=True
 def Pen(x='UP'):
+    global PEN_UP
     if x=='UP':
+        PEN_UP=True
         ser.write(b'SP,1,200\r')
     else:
+        PEN_UP=False
         ser.write(b'SP,0,200\r')
 
 def Free(x):
@@ -101,6 +107,9 @@ def ruudukko(kpl,koko):
         Move(kpl*koko,x*koko)
         Pen('UP')
 
+def Origin_here():X_NOW=0;Y_NOW=0
+     
+        
 def Frame(x,y):
     Move(0,0)
     Pen('DOWN')
@@ -109,11 +118,9 @@ def Frame(x,y):
     Move(0,y)
     Move(0,0)
     Pen('UP')
-        
 
 def plot_image(i,w=0,h=0,vali=100,musta=130,kehys=True,edestakas=False): # milli on 100
     Pen('UP')
-    seon='UP'
     Move(0,0)
     img=Image.open(i)
     if w>0:
@@ -133,7 +140,6 @@ def plot_image(i,w=0,h=0,vali=100,musta=130,kehys=True,edestakas=False): # milli
     if kehys: Frame(w*vali,h*vali)
     for x in range(w):
         Pen('UP')
-        seon='UP'
         print('x=',x)
         for z in range(h):
             y=h-z-1
@@ -141,18 +147,15 @@ def plot_image(i,w=0,h=0,vali=100,musta=130,kehys=True,edestakas=False): # milli
             p=img.getpixel((x,h-y-1))
             v=(p[0]+p[1]+p[2])/3
             if p[0]<musta:
-                if seon=='UP':
+                if PEN_UP:
                     Move(x*vali,y*vali)
                     Pen('DOWN')
-                    seon='DOWN'
             else:
-                if seon=="DOWN":
+                if not PEN_UP:
                     Move(x*vali,y*vali)
                     Pen('UP')
-                    seon='UP'
-        if seon=="DOWN":
+        if not PEN_UP:
             Move(x*vali,y*vali)
             Pen('UP')
-            seon='UP'
     Move(0,0)
 
