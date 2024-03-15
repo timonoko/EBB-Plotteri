@@ -141,7 +141,7 @@ def plot3(x,y,vali):
         Move(x*vali,y*vali)
         Pen('UP')
 
-def plot_image(i,w=0,h=0,vali=100,musta=130,kehys=True,hori=False): # milli on 100
+def plot_image(i,w=0,h=0,vali=100,musta=130,kehys=False,hori=False): # milli on 100
     Pen('UP')
     Move(0,0)
     img=Image.open(i)
@@ -156,7 +156,7 @@ def plot_image(i,w=0,h=0,vali=100,musta=130,kehys=True,hori=False): # milli on 1
         s=img.size
         w=s[0]
         h=s[1]
-    print('New Size:',w,',',h," mm:",w*vali/100,',',h*vali/100)
+    print('New Size:',w,',',h," cm:",w*vali/1000,',',h*vali/1000)
     img.show()
     input('Enter to continue')
     if kehys: Frame(w*vali,h*vali)
