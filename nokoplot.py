@@ -2,7 +2,8 @@
 
 from PIL import Image
 
-import serial,time,sys
+import serial,time,sys,math
+
 ser = serial.Serial()
 ser.port = "/dev/ttyACM0"
 
@@ -59,11 +60,15 @@ def Pen(x='UP'):
     global PEN_UP
     if x=='UP':
         PEN_UP=True
-        ser.write(b'SP,1,200\r')
+        ser.write(b'SP,1,500\r')
     else:
         PEN_UP=False
-        ser.write(b'SP,0,200\r')
+        ser.write(b'SP,0,500\r')
 
+ser.write(b'SC,1,1\r')
+ser.write(b'SC,4,10000\r')
+ser.write(b'SC,5,20000\r')
+        
 def Free(x):
     if x:
         ser.write(b'EM,0,0\r')
@@ -119,7 +124,24 @@ def Frame(x,y):
     Move(0,0)
     Pen('UP')
 
-def plot_image(i,w=0,h=0,vali=100,musta=130,kehys=True,edestakas=False): # milli on 100
+def plot2(img,x,y,h,vali,musta):
+    p=img.getpixel((x,h-y-1))
+    v=(p[0]+p[1]+p[2])/3
+    if p[0]<musta:
+        if PEN_UP:
+            Move(x*vali,y*vali)
+            Pen('DOWN')
+    else:
+        if not PEN_UP:
+            Move(x*vali,y*vali)
+            Pen('UP')
+
+def plot3(x,y,vali):
+    if not PEN_UP:
+        Move(x*vali,y*vali)
+        Pen('UP')
+
+def plot_image(i,w=0,h=0,vali=100,musta=130,kehys=True,hori=False): # milli on 100
     Pen('UP')
     Move(0,0)
     img=Image.open(i)
@@ -129,7 +151,7 @@ def plot_image(i,w=0,h=0,vali=100,musta=130,kehys=True,edestakas=False): # milli
         else:
             s=img.size
             h=int(s[1]/(s[0]/w))
-        img=img.resize((w,h))
+            img=img.resize((w,h))
     else:
         s=img.size
         w=s[0]
@@ -138,24 +160,23 @@ def plot_image(i,w=0,h=0,vali=100,musta=130,kehys=True,edestakas=False): # milli
     img.show()
     input('Enter to continue')
     if kehys: Frame(w*vali,h*vali)
-    for x in range(w):
-        Pen('UP')
-        print('x=',x)
-        for z in range(h):
-            y=h-z-1
-            if edestakas and x%2==1: y=z
-            p=img.getpixel((x,h-y-1))
-            v=(p[0]+p[1]+p[2])/3
-            if p[0]<musta:
-                if PEN_UP:
-                    Move(x*vali,y*vali)
-                    Pen('DOWN')
-            else:
-                if not PEN_UP:
-                    Move(x*vali,y*vali)
-                    Pen('UP')
-        if not PEN_UP:
-            Move(x*vali,y*vali)
-            Pen('UP')
+    if hori:
+        for y in range(h):
+            for x in range(w): plot2(img,x,y,h,vali,musta)
+            plot3(x,y,vali)
+    else:
+        for x in range(w):
+            for y in range(h): plot2(img,x,y,h,vali,musta)
+            plot3(x,y,vali)
     Move(0,0)
+ 
+
+def plot_circle(r=1000,xo=15000,yo=15000):
+     step=int(r/1000)
+     for a in range(0,360+step,step):
+         x=int(r*math.cos(math.radians(a)))
+         y=int(r*math.sin(math.radians(a)))
+         Move(xo+x,yo+y)
+         if a==0: Pen('DOWN')
+     Pen('UP')
 
