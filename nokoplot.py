@@ -60,7 +60,7 @@ def Pen(x='UP'):
     global PEN_UP
     if x=='UP':
         PEN_UP=True
-        ser.write(b'SP,1,500\r')
+        ser.write(b'SP,1,800\r')
     else:
         PEN_UP=False
         ser.write(b'SP,0,500\r')
