@@ -1,7 +1,6 @@
 #! /usr/bin(/Python3
 
-from PIL import Image
-
+from PIL import Image, ImageFont, ImageDraw  
 import serial,time,sys,math
 
 ser = serial.Serial()
@@ -144,7 +143,8 @@ def plot3(x,y,vali):
 def plot_image(i,w=0,h=0,vali=100,musta=130,kehys=False,hori=False): # milli on 100
     Pen('UP')
     Move(0,0)
-    img=Image.open(i)
+    if type(i) == type('string'): img=Image.open(i)
+    else: img=i
     if w>0:
         if h>0:
             img=img.resize((w,h))
@@ -180,3 +180,12 @@ def plot_circle(r=1000,xo=15000,yo=15000):
          if a==0: Pen('DOWN')
      Pen('UP')
 
+def banneri(text,w,h=50,vali=100):
+    l=len(text)
+    image = Image.new(mode="RGB",size=(int(l*h/1.5),int(h*1.1)),color="white")  
+    draw = ImageDraw.Draw(image)  
+    font = ImageFont.truetype('/usr/share/fonts/CreteRound-Regular.ttf',h)  
+    draw.text((10,-int(h/5)), text, font = font, fill='black', align ="left")  
+    plot_image(image,w,hori=True,vali=vali)
+
+    
