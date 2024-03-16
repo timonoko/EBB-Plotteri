@@ -1,7 +1,7 @@
 #! /usr/bin(/Python3
 
 from PIL import Image, ImageFont, ImageDraw  
-import serial,time,sys,math
+import serial,time,sys,math,os,datetime
 
 ser = serial.Serial()
 
@@ -14,7 +14,13 @@ while True:
         except:
             print('EI PORTTIA')
             time.sleep(1)
-        
+
+
+def save_status():
+    f=open('STATUS.py','w')
+    f.write('X_NOW='+str(X_NOW)+';Y_NOW='+str(Y_NOW))
+    f.close()
+            
 ser.baudrate = 9600
 ser.timeout = 0.1
 ser.xonoff = True
@@ -22,12 +28,16 @@ ser.write(b'R\r')
 X_NOW=0
 Y_NOW=0
 from STATUS import *
-print('**** STATUS:',X_NOW,',',Y_NOW,' ****')
-
-def save_status():
-    f=open('STATUS.py','w')
-    f.write('X_NOW='+str(X_NOW)+';Y_NOW='+str(Y_NOW))
-    f.close()
+file_mod_time=datetime.datetime.fromtimestamp(os.path.getmtime('STATUS.py'))
+today=datetime.datetime.today()
+age=today-file_mod_time
+if  age.seconds > 1800 and (X_NOW != 0 or Y_NOW != 20000):
+    print('*** TOO OLD STATUS :',X_NOW,Y_NOW,age.seconds) 
+    print('    Move Manually:')
+    X_NOW=0
+    Y_NOW=20000
+    save_status()
+print('*** STATUS:',X_NOW,',',Y_NOW)
 
 def query_motors():
     ser.read(20)
@@ -59,19 +69,23 @@ def Move(x,y):
     save_status()
 
 PEN_UP=True
-ser.write(b'SC,1,1\r')
-ser.write(b'SC,4,10000\r')
-ser.write(b'SC,5,20000\r')
-
 def Pen(x='UP'):
     global PEN_UP
+    ser.write(b'SC,1,1\r')
+    ser.write(b'SC,4,10000\r')
+    ser.write(b'SC,5,20000\r')
     if x=='UP':
         PEN_UP=True
         ser.write(b'SP,1,800\r')
-    else:
+    if x=='DOWN':
         PEN_UP=False
         ser.write(b'SP,0,500\r')
+    if type(x)==type(1): # Numeerinen kynän asento 0-100
+        ser.write(bytes("SC,4,{}\r".format(int(10000+(100-x)*100)),encoding='UTF-8'))
+        PEN_UP=False
+        ser.write(b'SP,1,500\r')
 
+        
 Pen('DOWN');Pen('UP')
         
 def Free(x):
@@ -190,3 +204,19 @@ def A0(): Move(0,0)
 def A3(): Move(42000,29700)
 def A4(): Move(29700,21000)
 def A5(): Move(21000,14800)
+
+def maalaus():
+    for y in range(1000,10000,500):
+        for z in range(3):
+            Move(0,20000)
+            Pen('DOWN')
+            time.sleep(2)
+            Move(100,20100)
+            Pen('UP')
+        Move(5000,y)
+        Pen('DOWN')
+        Move(15000,y)
+        Pen('UP')
+            
+
+    
