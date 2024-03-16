@@ -4,21 +4,25 @@ from PIL import Image, ImageFont, ImageDraw
 import serial,time,sys,math
 
 ser = serial.Serial()
-ser.port = "/dev/ttyACM0"
 
-try: ser.open()
-except:
-    ser.port = "/dev/ttyACM1"
-    try: ser.open()
+while True:
+    ser.port = "/dev/ttyACM0"
+    try: ser.open() ; break
     except:
-        print('EI PORTTIA')
-        sys.exit()
+        ser.port = "/dev/ttyACM1"
+        try: ser.open() ; break
+        except:
+            print('EI PORTTIA')
+            time.sleep(1)
         
 ser.baudrate = 9600
 ser.timeout = 0.1
 ser.xonoff = True
-
 ser.write(b'R\r')
+X_NOW=0
+Y_NOW=0
+from STATUS import *
+print('**** STATUS:',X_NOW,',',Y_NOW,' ****')
 
 def save_status():
     f=open('STATUS.py','w')
@@ -55,6 +59,10 @@ def Move(x,y):
     save_status()
 
 PEN_UP=True
+ser.write(b'SC,1,1\r')
+ser.write(b'SC,4,10000\r')
+ser.write(b'SC,5,20000\r')
+
 def Pen(x='UP'):
     global PEN_UP
     if x=='UP':
@@ -64,16 +72,15 @@ def Pen(x='UP'):
         PEN_UP=False
         ser.write(b'SP,0,500\r')
 
-ser.write(b'SC,1,1\r')
-ser.write(b'SC,4,10000\r')
-ser.write(b'SC,5,20000\r')
+Pen('DOWN');Pen('UP')
         
 def Free(x):
     if x:
         ser.write(b'EM,0,0\r')
     else:
         ser.write(b'EM,1,1\r')
-              
+Free(True)
+        
 def bye():
     Pen('UP')
     Move(0,0)
@@ -90,15 +97,8 @@ def lepo():
     Free(True)
     sys.exit()
 
+def Origin_here():X_NOW=0;Y_NOW=0
     
-#init
-X_NOW=0
-Y_NOW=0
-Free(False)
-Pen('DOWN');time.sleep(1);Pen('UP')
-from STATUS import *
-print('**** STATUS:',X_NOW,',',Y_NOW,' ****')
-
 def ruudukko(kpl,koko):
     for x in range(kpl):
         Move(0,0)
@@ -111,9 +111,6 @@ def ruudukko(kpl,koko):
         Move(kpl*koko,x*koko)
         Pen('UP')
 
-def Origin_here():X_NOW=0;Y_NOW=0
-     
-        
 def Frame(x,y):
     Move(0,0)
     Pen('DOWN')
@@ -189,3 +186,7 @@ def banneri(text,w,h=50,vali=100):
     plot_image(image,w,hori=True,vali=vali)
 
     
+def A0(): Move(0,0)
+def A3(): Move(42000,29700)
+def A4(): Move(29700,21000)
+def A5(): Move(21000,14800)
