@@ -15,24 +15,26 @@ while True:
             print('EI PORTTIA')
             time.sleep(1)
 
+ser.baudrate = 9600
+ser.timeout = 0.1
+ser.xonoff = True
+ser.write(b'R\r')
 
 def save_status():
     f=open('STATUS.py','w')
     f.write('X_NOW='+str(X_NOW)+';Y_NOW='+str(Y_NOW))
     f.close()
             
-ser.baudrate = 9600
-ser.timeout = 0.1
-ser.xonoff = True
-ser.write(b'R\r')
 X_NOW=0
-Y_NOW=0
+Y_NOW=20000
+if not os.path.exists('STATUS.py'): save_status()
 from STATUS import *
 file_mod_time=datetime.datetime.fromtimestamp(os.path.getmtime('STATUS.py'))
 today=datetime.datetime.today()
 age=today-file_mod_time
+print('Welcome back after',age.seconds,'seconds')
 if  age.seconds > 1800 and (X_NOW != 0 or Y_NOW != 20000):
-    print('*** TOO OLD STATUS :',X_NOW,Y_NOW,age.seconds) 
+    print('*** TOO OLD STATUS :',X_NOW,Y_NOW) 
     print('    Move Manually:')
     X_NOW=0
     Y_NOW=20000
@@ -205,10 +207,10 @@ def A3(): Move(42000,29700)
 def A4(): Move(29700,21000)
 def A5(): Move(21000,14800)
 
-def maalaus():
+def sivellin():
     for y in range(1000,10000,500):
         for z in range(3):
-            Move(0,20000)
+            Move(0,20000) # maalipurkki
             Pen('DOWN')
             time.sleep(2)
             Move(100,20100)
