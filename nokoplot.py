@@ -1,7 +1,7 @@
 #! /usr/bin(/Python3
 
 from PIL import Image, ImageFont, ImageDraw  
-import serial,time,sys,math,os,datetime
+import serial,time,sys,math,os,datetime,glob
 
 ser = serial.Serial()
 
@@ -40,6 +40,15 @@ if  age.seconds > 1800 and (X_NOW != 0 or Y_NOW != 20000):
     Y_NOW=20000
     save_status()
 print('*** STATUS:',X_NOW,',',Y_NOW)
+print(glob.glob('*.png'))
+print(glob.glob('*.jpg'))
+
+def Free(x):
+    if x:
+        ser.write(b'EM,0,0\r')
+    else:
+        ser.write(b'EM,1,1\r')
+Free(True)
 
 def query_motors():
     ser.read(20)
@@ -53,6 +62,7 @@ def Stepper_Move(duration,Steps1,Steps2):
     wait_when_busy()
     duration,Steps1,Steps2=(str(duration),str(Steps1),str(Steps2))
     ser.write(bytes("SM,{},{},{}\r".format(duration,Steps1,Steps2),encoding='UTF-8'))
+    wait_when_busy()
 
 PEN_SPEED=2    
 def Move_Rel(x,y):
@@ -86,16 +96,8 @@ def Pen(x='UP'):
         ser.write(bytes("SC,4,{}\r".format(int(10000+(100-x)*100)),encoding='UTF-8'))
         PEN_UP=False
         ser.write(b'SP,1,500\r')
-
         
 Pen('DOWN');Pen('UP')
-        
-def Free(x):
-    if x:
-        ser.write(b'EM,0,0\r')
-    else:
-        ser.write(b'EM,1,1\r')
-Free(True)
         
 def bye():
     Pen('UP')
@@ -156,6 +158,7 @@ def plot3(x,y,vali):
 def plot_image(i,w=0,h=0,vali=100,musta=130,kehys=False,hori=False): # milli on 100
     Pen('UP')
     Move(0,0)
+    Free(True)
     if type(i) == type('string'): img=Image.open(i)
     else: img=i
     if w>0:
@@ -182,6 +185,7 @@ def plot_image(i,w=0,h=0,vali=100,musta=130,kehys=False,hori=False): # milli on 
             for y in range(h): plot2(img,x,y,h,vali,musta)
             plot3(x,y,vali)
     Move(0,0)
+    Free(True)
  
 
 def plot_circle(r=1000,xo=15000,yo=15000):
@@ -220,5 +224,27 @@ def sivellin():
         Move(15000,y)
         Pen('UP')
             
+def uusi_nolla(l=10000):
+    Move(0,0)
+    X_NOW=0
+    Y_NOW=0
+    Free(True)
+    input('Enter to continue')
+    for x in range(0,l,2000):
+        Move(x,0)
+        Pen('DOWN')
+        Move(x+500,0)
+        Pen('UP')
+    for x in range(0,int(l/4*3),2000):
+        Move(0,x)
+        Pen('DOWN')
+        Move(0,x+500)
+        Pen('UP')
+    Move(0,0)
+    Free(True)
 
-    
+def kicad_pngx2(kuva):
+    img=Image.open(kuva)
+    s=int(img.size[0]/1.4266)
+    plot_image(img,s,vali=20)
+ 
