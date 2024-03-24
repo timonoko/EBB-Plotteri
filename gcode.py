@@ -3,7 +3,6 @@ import nokoplot as n
 try:   f=open(sys.argv[1],'r')
 except: f=open('gcode.gcode','r')
 
-f=open('gcode.gcode','r')
 def parsee(s):
     i=0
     tulos={}
