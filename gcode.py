@@ -1,4 +1,7 @@
-from nokoplot import *
+import nokoplot as n
+
+try:   f=open(sys.argv[1],'r')
+except: f=open('gcode.gcode','r')
 
 f=open('gcode.gcode','r')
 def parsee(s):
@@ -19,7 +22,7 @@ def parsee(s):
     return tulos
 
 def Move2(s):
-    Move(int(s['X']*100),int(s['Y']*100))
+    n.Move(int(s['X']*100),int(s['Y']*100))
 
 while True:
     s=f.readline()
@@ -34,8 +37,8 @@ while True:
             if 'F' in s: pass #print('Speed',s['F'])
     elif 'M' in s:
         if s['M']==3:
-            Pen('DOWN')
+            n.Pen('DOWN')
         if s['M']==5:
-            Pen('UP')
+            n.Pen('UP')
            
             
