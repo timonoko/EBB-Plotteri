@@ -1,4 +1,7 @@
+#! /usr/bin/python3
+
 import nokoplot as n
+import time,os
 
 try:   f=open(sys.argv[1],'r')
 except: f=open('gcode.gcode','r')
@@ -34,6 +37,8 @@ while True:
             if 'X' in s: Move2(s) 
             if 'S' in s: pass #print('power',s['S'])
             if 'F' in s: pass #print('Speed',s['F'])
+        elif s['G']==4:
+            time.sleep(s['P'])
     elif 'M' in s:
         if s['M']==3:
             n.Pen('DOWN')

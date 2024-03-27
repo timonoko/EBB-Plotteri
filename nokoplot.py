@@ -141,7 +141,7 @@ def Frame(x,y):
 def plot2(img,x,y,h,vali,musta):
     p=img.getpixel((x,h-y-1))
     v=(p[0]+p[1]+p[2])/3
-    if p[0]<musta:
+    if v<musta:
         if PEN_UP:
             Move(x*vali,y*vali)
             Pen('DOWN')
