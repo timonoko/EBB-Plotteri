@@ -56,10 +56,17 @@ def query_motors():
     return ser.read(10)
 
 def wait_when_busy():
+    print('*** WAIT ***')
     while query_motors() != b'QM,0,0,0\n\r': pass
 
+MOVES=0        
+        
 def Stepper_Move(duration,Steps1,Steps2):
-    #wait_when_busy()
+    global MOVES
+    MOVES+=1
+    if MOVES>100:
+        wait_when_busy()
+        MOVES=0
     duration,Steps1,Steps2=(str(duration),str(Steps1),str(Steps2))
     ser.write(bytes("SM,{},{},{}\r".format(duration,Steps1,Steps2),encoding='UTF-8'))
     #wait_when_busy()
@@ -67,6 +74,7 @@ def Stepper_Move(duration,Steps1,Steps2):
 PEN_SPEED=2
 def Move_Rel(x,y):
     duration=int((abs(x)+abs(y))/PEN_SPEED)
+    if duration<50: duration=50
     if PEN_UP: duration=int(duration/(6/PEN_SPEED))
     Stepper_Move(duration,x-y,x+y)
 
@@ -88,9 +96,11 @@ def Pen(x='UP'):
     ser.write(b'SC,5,20000\r')
     if x=='UP':
         PEN_UP=True
-        ser.write(b'SP,1,800\r')
+#        ser.write(b'SP,1,800\r')
+        ser.write(b'SP,1,400\r')
     if x=='DOWN':
         wait_when_busy()
+        MOVES=0
         PEN_UP=False
         ser.write(b'SP,0,500\r')
     if type(x)==type(1): # Numeerinen kynän asento 0-100
