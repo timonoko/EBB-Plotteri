@@ -1,4 +1,10 @@
 #! /usr/bin/python3
+
+"""
+Displays G-code graphics.
+Especially the G-code that comes out from fixInkscape.py
+"""
+
 from PIL import Image, ImageFont, ImageDraw, ImageOps  
 import time,sys,math,os,datetime
 
