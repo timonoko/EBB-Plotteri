@@ -1,5 +1,10 @@
 #! /usr/bin/python3
 
+"""
+ Sends G-code file to EBB-plotter
+   after fixInkscape.py - filtering
+"""
+
 import nokoplot as n
 import time,os,sys
 
