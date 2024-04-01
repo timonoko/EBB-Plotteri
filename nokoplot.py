@@ -1,4 +1,4 @@
-#! /usr/bin(/Python3
+#! /usr/bin/Python3
 
 from PIL import Image, ImageFont, ImageDraw  
 import serial,time,sys,math,os,datetime,glob,atexit
@@ -230,7 +230,7 @@ def banneri(text,w,h=50,vali=100):
     plot_image(image,w,hori=True,vali=vali)
 
     
-def A0(): Move(0,0); Free()
+def A0(): Move(0,0); wait_when_busy(); Free()
 def A3(): Move(42000,29700)
 def A4(): Move(29700,21000)
 def A5(): Move(21000,14800)
