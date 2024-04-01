@@ -1,7 +1,7 @@
 #! /usr/bin(/Python3
 
 from PIL import Image, ImageFont, ImageDraw  
-import serial,time,sys,math,os,datetime,glob
+import serial,time,sys,math,os,datetime,glob,atexit
 
 ser = serial.Serial()
 
@@ -43,7 +43,7 @@ print('*** STATUS:',X_NOW,',',Y_NOW)
 print(glob.glob('*.png'))
 print(glob.glob('*.jpg'))
 
-def Free(x):
+def Free(x=True):
     if x:
         ser.write(b'EM,0,0\r')
     else:
@@ -56,26 +56,28 @@ def query_motors():
     return ser.read(10)
 
 def wait_when_busy():
-    print('*** WAIT ***')
-    while query_motors() != b'QM,0,0,0\n\r': pass
+    any=False
+    while query_motors() != b'QM,0,0,0\n\r':
+        any=True
+        print('.',end='')
+    if any: print()
 
 MOVES=0        
         
 def Stepper_Move(duration,Steps1,Steps2):
     global MOVES
     MOVES+=1
-    if MOVES>100:
+    if MOVES>10:
         wait_when_busy()
         MOVES=0
     duration,Steps1,Steps2=(str(duration),str(Steps1),str(Steps2))
     ser.write(bytes("SM,{},{},{}\r".format(duration,Steps1,Steps2),encoding='UTF-8'))
-    #wait_when_busy()
 
 PEN_SPEED=2
 def Move_Rel(x,y):
     duration=int((abs(x)+abs(y))/PEN_SPEED)
-    if duration<50: duration=50
-    if PEN_UP: duration=int(duration/(6/PEN_SPEED))
+    if duration<100: duration=100
+    if PEN_UP: duration=int(duration/4)
     Stepper_Move(duration,x-y,x+y)
 
 def Move(x,y):
@@ -126,6 +128,16 @@ def lepo():
     save_status()
     Free(True)
     sys.exit()
+
+def vapaus():
+    Pen('UP')
+    wait_when_busy()
+    save_status()
+    Free(True)
+    print('*** STATUS:',X_NOW,',',Y_NOW)
+    sys.exit()
+
+atexit.register(vapaus)
 
 def Origin_here():X_NOW=0;Y_NOW=0
     
@@ -218,7 +230,7 @@ def banneri(text,w,h=50,vali=100):
     plot_image(image,w,hori=True,vali=vali)
 
     
-def A0(): Move(0,0)
+def A0(): Move(0,0); Free()
 def A3(): Move(42000,29700)
 def A4(): Move(29700,21000)
 def A5(): Move(21000,14800)

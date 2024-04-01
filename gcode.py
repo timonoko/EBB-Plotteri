@@ -17,7 +17,7 @@ def parsee(s):
     number=""
     prevalfa="kakka"
     while i<len(s):
-        if ord(s[i]) in range(ord('0'),ord('9')+1) or s[i]=='.':
+        if ord(s[i]) in range(ord('0'),ord('9')+1) or s[i]=='.' or s[i]=='-':
             number+=s[i]
         else:
             if prevalfa != "kakka" and number != "." and number != '' and number != '..':

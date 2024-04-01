@@ -3,6 +3,8 @@
 """
 Displays G-code graphics.
 Especially the G-code that comes out from fixInkscape.py
+
+showgcode.py filename [old.png/none] [new.png]
 """
 
 from PIL import Image, ImageFont, ImageDraw, ImageOps  
@@ -10,7 +12,21 @@ import time,sys,math,os,datetime
 
 os.system('killall display')
 
-IMG=Image.new(mode="RGB",size=(10000,10000),color=(0xe5,0xd5,0xa4))
+try:   F=open(sys.argv[1],'r')
+except: F=open('gcode.gcode','r')
+
+IMG=Image.new(mode="RGB",size=(10000,10000),color=(0xe5,0xd5,0xa4))    
+try:
+    img2=Image.open(sys.argv[2],'r')
+    img2=ImageOps.flip(img2)
+    IMG.paste(img2,(0,0)+img2.size)
+    MAX_X=img2.size[0]
+    MAX_Y=img2.size[1]
+except:
+    MAX_X=0
+    MAX_Y=0
+
+
 
 def parsee(s):
     i=0
@@ -19,7 +35,7 @@ def parsee(s):
     prevalfa="kakka"
     while i<len(s):
         if s[i]=="(": break
-        elif ord(s[i]) in range(ord('0'),ord('9')+1) or s[i]=='.':
+        elif ord(s[i]) in range(ord('0'),ord('9')+1) or s[i]=='-' or s[i]=='.':
             number+=s[i]
         else:
             if prevalfa != "kakka" and number != "":
@@ -30,8 +46,6 @@ def parsee(s):
         i+=1
     return tulos
 
-MAX_X=0
-MAX_Y=0
 PREV_X=0
 PREV_Y=0
 PEN_DOWN=False
@@ -63,9 +77,6 @@ def Move2(s):
         mydraw(PREV_X,PREV_Y,x,y)
     PREV_X=x
     PREV_Y=y
-
-try:   F=open(sys.argv[1],'r')
-except: F=open('gcode.gcode','r')
 
 k=F.readline()
 while k:
@@ -103,9 +114,13 @@ for y in range(0,MAX_Y,100):
     mydraw(0,y,int(MAX_Y/40),y,(255,0,0))
     if y%1000==0: mydraw(0,y,MAX_X,y,(255,0,0))
 
+print('MAX',MAX_X,MAX_Y)
+print(IMG.size)
 IMG=ImageOps.flip(IMG)
+try:
+    IMG.save(sys.argv[3])
+    print('saving')
+except: pass
 if IMG.size[0] >1600: IMG=IMG.resize((1600,int(1600./MAX_X*MAX_Y)))
 if IMG.size[1] >1000: IMG=IMG.resize((int(1000./MAX_Y*MAX_X),1000))
 IMG.show()
-print('MAX',MAX_X,MAX_Y)
-print(IMG.size)
