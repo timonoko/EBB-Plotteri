@@ -4,8 +4,6 @@ It was once again easier to make your own software than to study some overly com
 
 Pen movement upside down, now the rubber band presses it down, not the servo.
 
-gcode.py = Gcode interpreter.
-
 Source: https://evil-mad.github.io/EggBot/ebb.html
 
 <img src=merkkivalo.png>
