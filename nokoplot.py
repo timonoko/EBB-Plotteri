@@ -231,9 +231,9 @@ def banneri(text,w,h=50,vali=100):
 
     
 def A0(): Move(0,0); wait_when_busy(); Free()
-def A3(): Move(42000,29700)
-def A4(): Move(29700,21000)
-def A5(): Move(21000,14800)
+def A3(): Move(42000,29700); wait_when_busy(); Free()
+def A4(): Move(29700,21000); wait_when_busy(); Free()
+def A5(): Move(21000,14800); wait_when_busy(); Free()
 
 def sivellin():
     for y in range(1000,10000,500):
@@ -267,8 +267,19 @@ def uusi_nolla(l=10000):
     Move(0,0)
     Free(True)
 
-def kicad_pngx2(kuva):
-    img=Image.open(kuva)
-    s=int(img.size[0]/1.4266)
-    plot_image(img,s,vali=20)
- 
+
+def saato():
+    import readchar
+    prev=""
+    while True:
+        print(X_NOW,Y_NOW)
+        k=readchar.readkey()
+        if k==prev: steppi=int(steppi*1.2)
+        else: steppi=50
+        if k=='\x1b[A': Move(X_NOW,Y_NOW+steppi)
+        if k=='\x1b[B': Move(X_NOW,Y_NOW-steppi)
+        if k=='\x1b[C': Move(X_NOW+steppi,Y_NOW)
+        if k=='\x1b[D': Move(X_NOW-steppi,Y_NOW)
+        if k=='\x1b\x1b': break
+        prev=k
+        wait_when_busy()
