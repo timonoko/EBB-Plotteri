@@ -283,3 +283,20 @@ def saato():
         if k=='\x1b\x1b': break
         prev=k
         wait_when_busy()
+
+def hiiri():
+    import mouse
+    Move(20000,10000)
+    mouse.move(1800,1125)
+    nolla= mouse.get_position()
+    speed=10
+    while True:
+        nyt=mouse.get_position()
+        Move(X_NOW-speed*(nyt[0]-nolla[0]),Y_NOW+speed*(nyt[1]-nolla[1]))
+        wait_when_busy()
+        mouse.move(1800,1125)
+        nolla= mouse.get_position()
+        time.sleep(0.1)
+        
+
+        
