@@ -1,7 +1,8 @@
 #! /usr/bin/Python3
 
 from PIL import Image, ImageFont, ImageDraw  
-import serial,time,sys,math,os,datetime,glob,atexit
+import serial,time,sys,math,os,datetime,glob,atexit,readchar
+
 
 ser = serial.Serial()
 
@@ -269,7 +270,6 @@ def uusi_nolla(l=10000):
 
 
 def saato():
-    import readchar
     prev=""
     while True:
         print(X_NOW,Y_NOW)
@@ -280,6 +280,8 @@ def saato():
         if k=='\x1b[B': Move(X_NOW,Y_NOW-steppi)
         if k=='\x1b[C': Move(X_NOW+steppi,Y_NOW)
         if k=='\x1b[D': Move(X_NOW-steppi,Y_NOW)
+        if k=='\x1b[5~': Pen('UP')
+        if k=='\x1b[6~': Pen('DOWN')
         if k=='\x1b\x1b': break
         prev=k
         wait_when_busy()
