@@ -79,6 +79,7 @@ def sign(x):
     if x>0: return 1
     else: return 0
 
+Klappikorjaus=80
 klappia=0  # Piirturissa on x-suunnassa klappia
 vanhasuunta=0
 PEN_SPEED=2
@@ -89,10 +90,10 @@ def Move_Rel(x,y):
     if PEN_UP: duration=int(duration/4)
     if sign(x) != sign(vanhasuunta) and not PEN_UP:
         if sign(x) < 0:
-            Stepper_Move(100,-100,-100)
+            Stepper_Move(50,-Klappikorjaus,-Klappikorjaus)
             klappia-=1
         else:
-            Stepper_Move(100,100,100)
+            Stepper_Move(50,Klappikorjaus,Klappikorjaus)
             klappia+=1
     Stepper_Move(duration,x-y,x+y)
     vanhasuunta=x
@@ -119,10 +120,10 @@ def Pen(x='UP'):
         ser.write(b'SP,1,400\r')
         while klappia!=0:
             if klappia<0:
-                Stepper_Move(100,100,100)
+                Stepper_Move(100,Klappikorjaus,Klappikorjaus)
                 klappia+=1
             else:
-                Stepper_Move(100,-100,-100)
+                Stepper_Move(100,-Klappikorjaus,-Klappikorjaus)
                 klappia-=1
     if x=='DOWN':
         wait_when_busy()
