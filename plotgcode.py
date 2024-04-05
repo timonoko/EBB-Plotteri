@@ -12,12 +12,13 @@ try:   f=open(sys.argv[1],'r')
 except: f=open('gcode.gcode','r')
 
 try:   X_OFFSET=int(sys.argv[2])
-except: X_OFFSET=0
+except: X_OFFSET=n.X_NOW
 
 try:   Y_OFFSET=int(sys.argv[3])
-except: Y_OFFSET=0
+except: Y_OFFSET=n.Y_NOW
 
-
+if X_OFFSET==0 and Y_OFFSET==20000:
+    Y_OFFSET=0
     
 def parsee(s):
     i=0

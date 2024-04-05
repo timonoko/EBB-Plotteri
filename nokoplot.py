@@ -74,13 +74,29 @@ def Stepper_Move(duration,Steps1,Steps2):
     duration,Steps1,Steps2=(str(duration),str(Steps1),str(Steps2))
     ser.write(bytes("SM,{},{},{}\r".format(duration,Steps1,Steps2),encoding='UTF-8'))
 
+def sign(x):
+    if x<0: return -1
+    if x>0: return 1
+    else: return 0
+
+klappia=0  # Piirturissa on x-suunnassa klappia
+vanhasuunta=0
 PEN_SPEED=2
 def Move_Rel(x,y):
+    global vanhasuunta,klappia
     duration=int((abs(x)+abs(y))/PEN_SPEED)
-    if duration<100: duration=100
+    if duration<10: duration=10
     if PEN_UP: duration=int(duration/4)
+    if sign(x) != sign(vanhasuunta) and not PEN_UP:
+        if sign(x) < 0:
+            Stepper_Move(100,-100,-100)
+            klappia-=1
+        else:
+            Stepper_Move(100,100,100)
+            klappia+=1
     Stepper_Move(duration,x-y,x+y)
-
+    vanhasuunta=x
+    
 def Move(x,y):
     global X_NOW,Y_NOW
     if x<42801 and y<31700 and x>-1 and y>-1:
@@ -93,7 +109,7 @@ def Move(x,y):
 
 PEN_UP=True
 def Pen(x='UP'):
-    global PEN_UP
+    global PEN_UP,klappia
     ser.write(b'SC,1,1\r')
     ser.write(b'SC,4,10000\r')
     ser.write(b'SC,5,20000\r')
@@ -101,6 +117,13 @@ def Pen(x='UP'):
         PEN_UP=True
 #        ser.write(b'SP,1,800\r')
         ser.write(b'SP,1,400\r')
+        while klappia!=0:
+            if klappia<0:
+                Stepper_Move(100,100,100)
+                klappia+=1
+            else:
+                Stepper_Move(100,-100,-100)
+                klappia-=1
     if x=='DOWN':
         wait_when_busy()
         MOVES=0
@@ -213,14 +236,16 @@ def plot_image(i,w=0,h=0,vali=100,musta=130,kehys=False,hori=False): # milli on 
     Free(True)
  
 
-def plot_circle(r=1000,xo=15000,yo=15000):
-     step=int(r/1000)
-     for a in range(0,360+step,step):
+def plot_circle(xo=10000,yo=10000,r=3000,start=0,end=360):
+    if start<end: step=10
+    else: step=-10
+    for a in range(start,end+step,step):
          x=int(r*math.cos(math.radians(a)))
          y=int(r*math.sin(math.radians(a)))
          Move(xo+x,yo+y)
-         if a==0: Pen('DOWN')
-     Pen('UP')
+         if a==start: Pen('DOWN')
+    Pen('UP')
+
 
 def banneri(text,w,h=50,vali=100):
     l=len(text)
@@ -282,6 +307,7 @@ def saato():
         if k=='\x1b[D': Move(X_NOW-steppi,Y_NOW)
         if k=='\x1b[5~': Pen('UP')
         if k=='\x1b[6~': Pen('DOWN')
+        if k=='l': lepo()
         if k=='\x1b\x1b': break
         prev=k
         wait_when_busy()
