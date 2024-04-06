@@ -84,6 +84,7 @@ Klappikorjaus=100
 Klappikorjausluku=0  # Piirturissa on x-suunnassa klappia
 vanhasuunta=0
 PEN_SPEED=2
+
 def Move_Rel(x,y):
     global vanhasuunta,Klappikorjausluku
     duration=int((abs(x)+abs(y))/PEN_SPEED)
@@ -111,7 +112,7 @@ def Move(x,y):
 
 PEN_UP=True
 def Pen(x='UP'):
-    global PEN_UP,Klappikorjausluku
+    global PEN_UP,Klappikorjausluku,X_NOW
     ser.write(b'SC,1,1\r')
     ser.write(b'SC,4,10000\r')
     ser.write(b'SC,5,20000\r')
@@ -119,13 +120,8 @@ def Pen(x='UP'):
         PEN_UP=True
 #        ser.write(b'SP,1,800\r')
         ser.write(b'SP,1,400\r')
-        while Klappikorjausluku!=0:
-            if Klappikorjausluku<0:
-                Stepper_Move(Klappispeed,Klappikorjaus,Klappikorjaus)
-                Klappikorjausluku+=1
-            else:
-                Stepper_Move(Klappispeed,-Klappikorjaus,-Klappikorjaus)
-                Klappikorjausluku-=1
+        X_NOW+=Klappikorjausluku*Klappikorjaus
+        Klappikorjausluku=0
     if x=='DOWN':
         wait_when_busy()
         MOVES=0
