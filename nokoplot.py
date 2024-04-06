@@ -79,22 +79,23 @@ def sign(x):
     if x>0: return 1
     else: return 0
 
-Klappikorjaus=80
-klappia=0  # Piirturissa on x-suunnassa klappia
+Klappispeed=50        
+Klappikorjaus=100
+Klappikorjausluku=0  # Piirturissa on x-suunnassa klappia
 vanhasuunta=0
 PEN_SPEED=2
 def Move_Rel(x,y):
-    global vanhasuunta,klappia
+    global vanhasuunta,Klappikorjausluku
     duration=int((abs(x)+abs(y))/PEN_SPEED)
     if duration<10: duration=10
     if PEN_UP: duration=int(duration/4)
-    if sign(x) != sign(vanhasuunta) and not PEN_UP:
+    if x!=0 and sign(x)!=sign(vanhasuunta) and (not PEN_UP):
         if sign(x) < 0:
-            Stepper_Move(50,-Klappikorjaus,-Klappikorjaus)
-            klappia-=1
+            Stepper_Move(Klappispeed,-Klappikorjaus,-Klappikorjaus)
+            Klappikorjausluku-=1
         else:
-            Stepper_Move(50,Klappikorjaus,Klappikorjaus)
-            klappia+=1
+            Stepper_Move(Klappispeed,Klappikorjaus,Klappikorjaus)
+            Klappikorjausluku+=1
     Stepper_Move(duration,x-y,x+y)
     vanhasuunta=x
     
@@ -110,7 +111,7 @@ def Move(x,y):
 
 PEN_UP=True
 def Pen(x='UP'):
-    global PEN_UP,klappia
+    global PEN_UP,Klappikorjausluku
     ser.write(b'SC,1,1\r')
     ser.write(b'SC,4,10000\r')
     ser.write(b'SC,5,20000\r')
@@ -118,13 +119,13 @@ def Pen(x='UP'):
         PEN_UP=True
 #        ser.write(b'SP,1,800\r')
         ser.write(b'SP,1,400\r')
-        while klappia!=0:
-            if klappia<0:
-                Stepper_Move(100,Klappikorjaus,Klappikorjaus)
-                klappia+=1
+        while Klappikorjausluku!=0:
+            if Klappikorjausluku<0:
+                Stepper_Move(Klappispeed,Klappikorjaus,Klappikorjaus)
+                Klappikorjausluku+=1
             else:
-                Stepper_Move(100,-Klappikorjaus,-Klappikorjaus)
-                klappia-=1
+                Stepper_Move(Klappispeed,-Klappikorjaus,-Klappikorjaus)
+                Klappikorjausluku-=1
     if x=='DOWN':
         wait_when_busy()
         MOVES=0
