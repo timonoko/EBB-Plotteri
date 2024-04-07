@@ -79,25 +79,37 @@ def sign(x):
     if x>0: return 1
     else: return 0
 
-Klappispeed=50        
-Klappikorjaus=100
-Klappikorjausluku=0  # Piirturissa on x-suunnassa klappia
+MOVING=False
+        
+def smooth(duration,x,y):
+    if abs(x)<401 and abs(y)<401 or not PEN_UP: # or MOVING:
+        Stepper_Move(duration,x,y)
+    else:    
+        xd=int(sign(x)*200)
+        yd=int(sign(y)*200)
+        Stepper_Move(200,xd,yd)
+        Stepper_Move(50,xd,yd)
+        Stepper_Move(duration,int(x-2*xd),int(y-2*yd))
+        
+Klappispeed=100        
+Klappikorjaus=50 # 100
+Klappikorjaukset=0  # Piirturissa on x-suunnassa klappia
+vanhempisuunta=0
 vanhasuunta=0
 PEN_SPEED=2
 
 def Move_Rel(x,y):
-    global vanhasuunta,Klappikorjausluku
+    global vanhasuunta,Klappikorjaukset,X_NOW,vanhempisuunta
     duration=int((abs(x)+abs(y))/PEN_SPEED)
-    if duration<10: duration=10
-    if PEN_UP: duration=int(duration/4)
-    if x!=0 and sign(x)!=sign(vanhasuunta) and (not PEN_UP):
-        if sign(x) < 0:
-            Stepper_Move(Klappispeed,-Klappikorjaus,-Klappikorjaus)
-            Klappikorjausluku-=1
-        else:
-            Stepper_Move(Klappispeed,Klappikorjaus,Klappikorjaus)
-            Klappikorjausluku+=1
-    Stepper_Move(duration,x-y,x+y)
+    if PEN_UP: duration=int(duration/6)
+    if duration<100: duration=100
+    if  sign(x)!=sign(vanhasuunta) and (not PEN_UP):
+        if vanhasuunta!=0 or sign(vanhempisuunta)!=sign(x):
+            z=sign(x)*Klappikorjaus
+            Stepper_Move(Klappispeed,z,z)
+            Klappikorjaukset+=z
+    smooth(duration,x-y,x+y)
+    vanhempisuunta=vanhasuunta
     vanhasuunta=x
     
 def Move(x,y):
@@ -112,20 +124,22 @@ def Move(x,y):
 
 PEN_UP=True
 def Pen(x='UP'):
-    global PEN_UP,Klappikorjausluku,X_NOW
+    global PEN_UP,Klappikorjaukset,X_NOW,MOVING
     ser.write(b'SC,1,1\r')
     ser.write(b'SC,4,10000\r')
     ser.write(b'SC,5,20000\r')
     if x=='UP':
+        X_NOW+=Klappikorjaukset
+        Klappikorjaukset=0
+        Move(X_NOW,Y_NOW)
         PEN_UP=True
 #        ser.write(b'SP,1,800\r')
         ser.write(b'SP,1,400\r')
-        X_NOW+=Klappikorjausluku*Klappikorjaus
-        Klappikorjausluku=0
     if x=='DOWN':
         wait_when_busy()
         MOVES=0
         PEN_UP=False
+        MOVING=False
         ser.write(b'SP,0,500\r')
     if type(x)==type(1): # Numeerinen kynän asento 0-100
         wait_when_busy()
@@ -293,11 +307,13 @@ def uusi_nolla(l=10000):
 
 
 def saato():
+    global MOVING
+    MOVING=True
     prev=""
     while True:
         print(X_NOW,Y_NOW)
         k=readchar.readkey()
-        if k==prev: steppi=int(steppi*1.2)
+        if k==prev: steppi=int(steppi*1.5)
         else: steppi=50
         if k=='\x1b[A': Move(X_NOW,Y_NOW+steppi)
         if k=='\x1b[B': Move(X_NOW,Y_NOW-steppi)
@@ -306,7 +322,8 @@ def saato():
         if k=='\x1b[5~': Pen('UP')
         if k=='\x1b[6~': Pen('DOWN')
         if k=='l': lepo()
-        if k=='\x1b\x1b': break
+        if k=='f': Free(True)
+        if k=='\x1b\x1b': MOVING=False; break
         prev=k
         wait_when_busy()
 
