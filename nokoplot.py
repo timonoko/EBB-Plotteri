@@ -50,6 +50,7 @@ def Free(x=True):
     else:
         ser.write(b'EM,1,1\r')
 Free(True)
+    
 
 def query_motors():
     ser.read(20)
@@ -79,17 +80,8 @@ def sign(x):
     if x>0: return 1
     else: return 0
 
-MOVING=False
-        
 def smooth(duration,x,y):
-    if abs(x)<401 and abs(y)<401 or not PEN_UP: # or MOVING:
-        Stepper_Move(duration,x,y)
-    else:    
-        xd=int(sign(x)*200)
-        yd=int(sign(y)*200)
-        Stepper_Move(200,xd,yd)
-        Stepper_Move(50,xd,yd)
-        Stepper_Move(duration,int(x-2*xd),int(y-2*yd))
+    Stepper_Move(duration,x+y,x-y)
         
 Klappispeed=100        
 Klappikorjaus=50 # 100
@@ -100,21 +92,23 @@ PEN_SPEED=2
 
 def Move_Rel(x,y):
     global vanhasuunta,Klappikorjaukset,X_NOW,vanhempisuunta
+#    x=round(x*20/20.7)
+#    y=round(y*20/20.7)
     duration=int((abs(x)+abs(y))/PEN_SPEED)
-    if PEN_UP: duration=int(duration/6)
+    if PEN_UP: duration=int(duration/4)
     if duration<100: duration=100
     if  sign(x)!=sign(vanhasuunta) and (not PEN_UP):
         if vanhasuunta!=0 or sign(vanhempisuunta)!=sign(x):
             z=sign(x)*Klappikorjaus
             Stepper_Move(Klappispeed,z,z)
             Klappikorjaukset+=z
-    smooth(duration,x-y,x+y)
+    smooth(duration,x,y)
     vanhempisuunta=vanhasuunta
     vanhasuunta=x
     
 def Move(x,y):
     global X_NOW,Y_NOW
-    if x<42801 and y<31700 and x>-1 and y>-1:
+    if x<42701 and y<31700 and x>-1 and y>-1:
         Move_Rel(x-X_NOW,y-Y_NOW)
         X_NOW=x
         Y_NOW=y
@@ -124,7 +118,7 @@ def Move(x,y):
 
 PEN_UP=True
 def Pen(x='UP'):
-    global PEN_UP,Klappikorjaukset,X_NOW,MOVING
+    global PEN_UP,Klappikorjaukset,X_NOW
     ser.write(b'SC,1,1\r')
     ser.write(b'SC,4,10000\r')
     ser.write(b'SC,5,20000\r')
@@ -139,15 +133,12 @@ def Pen(x='UP'):
         wait_when_busy()
         MOVES=0
         PEN_UP=False
-        MOVING=False
         ser.write(b'SP,0,500\r')
     if type(x)==type(1): # Numeerinen kynän asento 0-100
         wait_when_busy()
         ser.write(bytes("SC,4,{}\r".format(int(10000+(100-x)*100)),encoding='UTF-8'))
         PEN_UP=False
         ser.write(b'SP,1,500\r')
-        
-Pen('DOWN');Pen('UP')
         
 def bye():
     Pen('UP')
@@ -273,47 +264,15 @@ def A3(): Move(42000,29700); wait_when_busy(); Free()
 def A4(): Move(29700,21000); wait_when_busy(); Free()
 def A5(): Move(21000,14800); wait_when_busy(); Free()
 
-def sivellin():
-    for y in range(1000,10000,500):
-        for z in range(3):
-            Move(0,20000) # maalipurkki
-            Pen('DOWN')
-            time.sleep(2)
-            Move(100,20100)
-            Pen('UP')
-        Move(5000,y)
-        Pen('DOWN')
-        Move(15000,y)
-        Pen('UP')
-            
-def uusi_nolla(l=10000):
-    Move(0,0)
-    X_NOW=0
-    Y_NOW=0
-    Free(True)
-    input('Enter to continue')
-    for x in range(0,l,2000):
-        Move(x,0)
-        Pen('DOWN')
-        Move(x+500,0)
-        Pen('UP')
-    for x in range(0,int(l/4*3),2000):
-        Move(0,x)
-        Pen('DOWN')
-        Move(0,x+500)
-        Pen('UP')
-    Move(0,0)
-    Free(True)
-
-
 def saato():
-    global MOVING
-    MOVING=True
     prev=""
     while True:
+        Free(True)
         print(X_NOW,Y_NOW)
         k=readchar.readkey()
-        if k==prev: steppi=int(steppi*1.5)
+        if k==prev:
+            steppi=int(steppi*2)
+            steppi=steppi%5000
         else: steppi=50
         if k=='\x1b[A': Move(X_NOW,Y_NOW+steppi)
         if k=='\x1b[B': Move(X_NOW,Y_NOW-steppi)
@@ -322,8 +281,12 @@ def saato():
         if k=='\x1b[5~': Pen('UP')
         if k=='\x1b[6~': Pen('DOWN')
         if k=='l': lepo()
-        if k=='f': Free(True)
-        if k=='\x1b\x1b': MOVING=False; break
+        if k=='0': Move(0,0)
+        if k=='3': A3()
+        if k=='4': A4()
+        if k=='5': A5()
+        if k=='q': break
+        if k=='\x1b\x1b': break
         prev=k
         wait_when_busy()
 
