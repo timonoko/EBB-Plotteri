@@ -44,13 +44,6 @@ print('*** STATUS:',X_NOW,',',Y_NOW)
 print(glob.glob('*.png'))
 print(glob.glob('*.jpg'))
 
-def Free(x=True):
-    if x:
-        ser.write(b'EM,0,0\r')
-    else:
-        ser.write(b'EM,1,1\r')
-Free(True)
-    
 
 def query_motors():
     ser.read(20)
@@ -63,6 +56,15 @@ def wait_when_busy():
         any=True
         print('.',end='')
     if any: print()
+
+def Free(x=True):
+    wait_when_busy()
+    if x:
+        ser.write(b'EM,0,0\r')
+    else:
+        ser.write(b'EM,1,1\r')
+Free(True)
+    
 
 MOVES=0        
         
@@ -166,7 +168,6 @@ def vapaus():
 
 atexit.register(vapaus)
 
-def Origin_here():X_NOW=0;Y_NOW=0
     
 def ruudukko(kpl,koko):
     for x in range(kpl):
@@ -265,6 +266,7 @@ def A4(): Move(29700,21000); wait_when_busy(); Free()
 def A5(): Move(21000,14800); wait_when_busy(); Free()
 
 def saato():
+    global X_NOW,Y_NOW
     prev=""
     while True:
         Free(True)
@@ -285,6 +287,8 @@ def saato():
         if k=='3': A3()
         if k=='4': A4()
         if k=='5': A5()
+        if k=='z': X_NOW=0;Y_NOW=0
+        if k=='\x04': break
         if k=='q': break
         if k=='\x1b\x1b': break
         prev=k
