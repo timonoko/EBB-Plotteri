@@ -74,7 +74,7 @@ def Stepper_Move(duration,Steps1,Steps2):
     if MOVES>10:
         wait_when_busy()
         MOVES=0
-    duration,Steps1,Steps2=(str(duration),str(Steps1),str(Steps2))
+    duration,Steps1,Steps2=(str(int(duration)),str(int(Steps1)),str(int(Steps2)))
     ser.write(bytes("SM,{},{},{}\r".format(duration,Steps1,Steps2),encoding='UTF-8'))
 
 def sign(x):
@@ -107,10 +107,12 @@ def Move_Rel(x,y):
     smooth(duration,x,y)
     vanhempisuunta=vanhasuunta
     vanhasuunta=x
-    
+
+MAX_X=42700
+MAX_Y=33300
 def Move(x,y):
     global X_NOW,Y_NOW
-    if x<42701 and y<31700 and x>-1 and y>-1:
+    if x<MAX_X and y<MAX_Y and x>-1 and y>-1:
         Move_Rel(x-X_NOW,y-Y_NOW)
         X_NOW=x
         Y_NOW=y
@@ -224,7 +226,7 @@ def plot_image(i,w=0,h=0,vali=100,musta=130,kehys=False,hori=False): # milli on 
         s=img.size
         w=s[0]
         h=s[1]
-    print('New Size:',w,',',h," cm:",w*vali/1000,',',h*vali/1000)
+    print('New Size:',w,h," cm:",w*vali/1000,h*vali/1000," väli mm:",vali/100.)
     img.show()
     input('Enter to continue')
     if kehys: Frame(w*vali,h*vali)
@@ -240,9 +242,8 @@ def plot_image(i,w=0,h=0,vali=100,musta=130,kehys=False,hori=False): # milli on 
     Free(True)
  
 
-def plot_circle(xo=10000,yo=10000,r=3000,start=0,end=360):
-    if start<end: step=10
-    else: step=-10
+def plot_circle(xo=10000,yo=10000,r=3000,start=0,end=360,step=10):
+    if start>end: step=-step
     for a in range(start,end+step,step):
          x=int(r*math.cos(math.radians(a)))
          y=int(r*math.sin(math.radians(a)))
@@ -250,6 +251,8 @@ def plot_circle(xo=10000,yo=10000,r=3000,start=0,end=360):
          if a==start: Pen('DOWN')
     Pen('UP')
 
+def big_circle():
+    plot_circle(xo=MAX_Y/2,yo=MAX_Y/2,r=MAX_Y/2-1)
 
 def banneri(text,w,h=50,vali=100):
     l=len(text)
@@ -284,10 +287,14 @@ def saato():
         if k=='\x1b[6~': Pen('DOWN')
         if k=='l': lepo()
         if k=='0': Move(0,0)
+        if k=='m': Move(0,MAX_Y-1)
         if k=='3': A3()
         if k=='4': A4()
         if k=='5': A5()
         if k=='z': X_NOW=0;Y_NOW=0
+        if k=='f': Move(0,0);Move(0,MAX_Y-1);Move(MAX_X-1,MAX_Y-1);Move(MAX_X-1,0);\
+                   Move(0,0);Move(MAX_X-1,0);Move(MAX_X-1,MAX_Y-1);Move(0,MAX_Y-1);\
+                   Move(0,0);Move(MAX_X-1,MAX_Y-1);Move(0,0);
         if k=='\x04': break
         if k=='q': break
         if k=='\x1b\x1b': break
