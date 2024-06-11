@@ -86,7 +86,7 @@ def smooth(duration,x,y):
     Stepper_Move(duration,x+y,x-y)
         
 Klappispeed=100        
-Klappikorjaus=50 # 100
+Klappikorjaus=0 # 100
 Klappikorjaukset=0  # Piirturissa on x-suunnassa klappia
 vanhempisuunta=0
 vanhasuunta=0
