@@ -30,11 +30,10 @@ X_NOW=0
 Y_NOW=20000
 if not os.path.exists('STATUS.py'): save_status()
 from STATUS import *
-file_mod_time=datetime.datetime.fromtimestamp(os.path.getmtime('STATUS.py'))
-today=datetime.datetime.today()
-age=today-file_mod_time
-print('Welcome back after',age.seconds,'seconds')
-if  age.seconds > 1800 and (X_NOW != 0 or Y_NOW != 20000):
+st=os.stat('STATUS.py')
+age=int(time.time()-st.st_mtime)
+print('Welcome back after',age,'seconds')
+if  age > 1800 and (X_NOW != 0 or Y_NOW != 20000):
     print('*** TOO OLD STATUS :',X_NOW,Y_NOW) 
     print('    Move Manually:')
     X_NOW=0
