@@ -324,9 +324,11 @@ def cmyk(i,w):
     sh('convert2cmyk '+i)
     for f in ('y','m','c','k'):
         input('Vaihda Kyna '+f)
+        hori=False
         for m in (70,140,210):
-            plot_image(f+'.jpg',w=int(w*100/130),musta=m,odota=False,vali=130)
-            Move(30,0)
+            plot_image(f+'.jpg',w=w,musta=m,odota=False,vali=100,hori=hori)
+            hori= not hori
+            Move(25,0)
             X_NOW=0
-        X_NOW=90
+        X_NOW=75
         Move(0,0)
