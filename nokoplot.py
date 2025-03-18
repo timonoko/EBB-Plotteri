@@ -2,6 +2,10 @@
 
 from PIL import Image, ImageFont, ImageDraw  
 import serial,time,sys,math,os,datetime,glob,atexit,readchar
+from nokosh import sh
+
+MAX_X=42700
+MAX_Y=33300
 
 
 ser = serial.Serial()
@@ -33,11 +37,11 @@ from STATUS import *
 st=os.stat('STATUS.py')
 age=int(time.time()-st.st_mtime)
 print('Welcome back after',age,'seconds')
-if  age > 1800 and (X_NOW != 0 or Y_NOW != 20000):
+if  age > 3*3600 and (X_NOW != 0 or Y_NOW != MAX_Y):
     print('*** TOO OLD STATUS :',X_NOW,Y_NOW) 
     print('    Move Manually:')
     X_NOW=0
-    Y_NOW=20000
+    Y_NOW=MAX_Y
     save_status()
 print('*** STATUS:',X_NOW,',',Y_NOW)
 print(glob.glob('*.png'))
@@ -107,8 +111,6 @@ def Move_Rel(x,y):
     vanhempisuunta=vanhasuunta
     vanhasuunta=x
 
-MAX_X=42700
-MAX_Y=33300
 def Move(x,y):
     global X_NOW,Y_NOW
     if x<MAX_X and y<MAX_Y and x>-1 and y>-1:
@@ -153,7 +155,7 @@ def bye():
 
 def lepo():
     Pen('UP')
-    Move(0,20000)
+    Move(0,MAX_Y-1)
     wait_when_busy()
     save_status()
     Free(True)
@@ -193,7 +195,8 @@ def Frame(x,y):
 
 def plot2(img,x,y,h,vali,musta):
     p=img.getpixel((x,h-y-1))
-    v=(p[0]+p[1]+p[2])/3
+    if type(p)==type(1): v=p
+    else: v=(p[0]+p[1]+p[2])/3
     if v<musta:
         if PEN_UP:
             Move(x*vali,y*vali)
@@ -208,7 +211,7 @@ def plot3(x,y,vali):
         Move(x*vali,y*vali)
         Pen('UP')
 
-def plot_image(i,w=0,h=0,vali=100,musta=130,kehys=False,hori=False): # milli on 100
+def plot_image(i,w=0,h=0,vali=100,musta=130,kehys=False,hori=False,odota=True): # milli on 100
     Pen('UP')
     Move(0,0)
     Free(True)
@@ -226,8 +229,9 @@ def plot_image(i,w=0,h=0,vali=100,musta=130,kehys=False,hori=False): # milli on 
         w=s[0]
         h=s[1]
     print('New Size:',w,h," cm:",w*vali/1000,h*vali/1000," väli mm:",vali/100.)
-    img.show()
-    input('Enter to continue')
+    if odota:
+        img.show()
+        input('Enter to continue')
     if kehys: Frame(w*vali,h*vali)
     if hori:
         for y in range(h):
@@ -286,7 +290,7 @@ def saato():
         if k=='\x1b[6~': Pen('DOWN')
         if k=='l': lepo()
         if k=='0': Move(0,0)
-        if k=='m': Move(0,MAX_Y-1)
+        if k=='m': lepo()
         if k=='3': A3()
         if k=='4': A4()
         if k=='5': A5()
@@ -315,4 +319,14 @@ def hiiri():
         time.sleep(0.1)
         
 
-        
+def cmyk(i,w):
+    global X_NOW,Y_NOW
+    sh('convert2cmyk '+i)
+    for f in ('y','m','c','k'):
+        input('Vaihda Kyna '+f)
+        for m in (70,140,210):
+            plot_image(f+'.jpg',w=int(w*100/130),musta=m,odota=False,vali=130)
+            Move(30,0)
+            X_NOW=0
+        X_NOW=90
+        Move(0,0)

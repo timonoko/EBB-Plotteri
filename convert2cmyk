@@ -1,0 +1,5 @@
+convert $1 -colorspace cmyk -channel c -negate -separate c.jpg
+convert $1 -colorspace cmyk -channel m -negate -separate m.jpg
+convert $1 -colorspace cmyk -channel y -negate -separate y.jpg
+convert $1 -colorspace cmyk -channel k -negate -separate k.jpg
+
