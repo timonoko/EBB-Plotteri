@@ -322,10 +322,10 @@ def hiiri():
 def cmyk(i,w):
     global X_NOW,Y_NOW
     sh('convert2cmyk '+i)
-    for f in ('y','m','c','k'):
+    for f in 'ycmk':
         input('Vaihda Kyna '+f)
         hori=False
-        for m in (70,140,210):
+        for m in (70,120,200):
             plot_image(f+'.jpg',w=w,musta=m,odota=False,vali=100,hori=hori)
             hori= not hori
             Move(25,0)
